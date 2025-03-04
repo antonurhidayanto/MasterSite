@@ -32,8 +32,7 @@ Untuk menginstal dan menjalankan aplikasi ini di komputer lokal Anda, ikuti lang
 
 2. Pindah ke direktori proyek:
     ```bash
-  cd Master-site-menu-remote
-
+    cd Master-site-menu-remote
 3. Instal dependensi dengan npm:
     ```bash
     npm install
