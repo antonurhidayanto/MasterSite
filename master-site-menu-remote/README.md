@@ -9,18 +9,37 @@ Currently, two official plugins are available:
 - Vite v6+
 - Running instance of `site` remote module (port 9001)
 
-## Quick Start
-1. Install dependencies:
+# Exposed Site Application
 
-```bash
-npm install
-```
+Exposed Site adalah aplikasi yang digunakan untuk mengelola data situs. Aplikasi ini dibangun dengan menggunakan **React**, **TypeScript**, dan **API REST**. Aplikasi ini memungkinkan pengguna untuk mengelola, menampilkan, mengedit, menghapus, dan mencari data situs secara efisien.
 
-2. Start development server:
-```bash
-npm run dev
-```
+## Fitur
 
-3. Build for production:
-```bash
-npm run build && npm run serve
+- Mengelola data situs
+- Menampilkan data situs dalam bentuk tabel
+- Mengedit data situs
+- Menghapus data situs
+- Mencari data situs
+- Mengatur pagination
+
+## Instalasi
+
+Untuk menginstal dan menjalankan aplikasi ini di komputer lokal Anda, ikuti langkah-langkah berikut:
+
+1. Clone repository ini ke dalam direktori Anda:
+   ``bash
+   git clone https://github.com/antonurhidayanto/MasterSite/tree/main/master-site-menu-remote
+
+2. Pindah ke direktori proyek:
+    ``bash
+  cd Master-site-menu-remote
+
+3. Instal dependensi dengan npm:
+    ``bash
+    npm install
+4. Jalankan aplikasi:
+    ``bash
+    npm run dev
+5. Build for production:
+    ``bash
+    npm run build && npm run serve
