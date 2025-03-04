@@ -27,19 +27,19 @@ Exposed Site adalah aplikasi yang digunakan untuk mengelola data situs. Aplikasi
 Untuk menginstal dan menjalankan aplikasi ini di komputer lokal Anda, ikuti langkah-langkah berikut:
 
 1. Clone repository ini ke dalam direktori Anda:
-   ``bash
+   ```bash
    git clone https://github.com/antonurhidayanto/MasterSite/tree/main/master-site-menu-remote
 
 2. Pindah ke direktori proyek:
-    ``bash
+    ```bash
   cd Master-site-menu-remote
 
 3. Instal dependensi dengan npm:
-    ``bash
+    ```bash
     npm install
 4. Jalankan aplikasi:
-    ``bash
+    ```bash
     npm run dev
 5. Build for production:
-    ``bash
+    ```bash
     npm run build && npm run serve
