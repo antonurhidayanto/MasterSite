@@ -13,16 +13,16 @@ Currently, two official plugins are available:
 
 Exposed Site adalah aplikasi yang digunakan untuk mengelola data situs. Aplikasi ini dibangun dengan menggunakan **React**, **TypeScript**, dan **API REST**. Aplikasi ini memungkinkan pengguna untuk mengelola, menampilkan, mengedit, menghapus, dan mencari data situs secara efisien.
 
-## Fitur
+## 🛠️ Fitur
 
-- Mengelola data situs
-- Menampilkan data situs dalam bentuk tabel
-- Mengedit data situs
-- Menghapus data situs
-- Mencari data situs
-- Mengatur pagination
+- 🗂️ Mengelola data situs
+- 📊 Menampilkan data situs dalam bentuk tabel
+- ✏️ Mengedit data situs
+- 🗑️ Menghapus data situs
+- 🔍 Mencari data situs
+- 📑 Mengatur pagination
 
-## Instalasi
+## 🚀 Instalasi
 
 Untuk menginstal dan menjalankan aplikasi ini di komputer lokal Anda, ikuti langkah-langkah berikut:
 
@@ -42,3 +42,15 @@ Untuk menginstal dan menjalankan aplikasi ini di komputer lokal Anda, ikuti lang
 5. Build for production:
     ```bash
     npm run build && npm run serve
+
+
+📧 Kontak
+Jika Anda memiliki pertanyaan atau ingin melaporkan bug, silakan hubungi kami melalui email: anto.ronks@gmail.com
+
+🔄 Perubahan
+Versi 1.0.0: Rilis awal aplikasi
+Versi 1.1.0: Menambahkan fitur pagination
+
+⚠️ Catatan
+Aplikasi ini masih dalam tahap pengembangan dan belum siap untuk digunakan dalam produksi.
+Aplikasi ini hanya dapat dijalankan pada browser yang mendukung teknologi modern (misalnya, Chrome, Firefox, Edge).
