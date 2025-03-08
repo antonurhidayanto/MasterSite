@@ -1,10 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table"
-import { DataTable, Button, ActionDropdown,Select,ClearableInput,Dialog,Input,DialogConfirm , BaseAlert } from "globalUtils/components"
+import { DataTable, Button, ActionDropdown,Select,ClearableInput,Dialog,DialogConfirm , BaseAlert } from "globalUtils/components"
 import { restAPI, ApiDataResponse } from "globalUtils/utils"
 import { useEffect, useState } from "react"
 import Cookies from "js-cookie"
 import { useToast, useAlertStatus } from 'globalUtils/hooks';
-import { p, s } from "motion/react-client"
+import FormComponent from "./FormComponent"
+import Pagination from "./Pagination"
 export type Column = {
   clientName: string
   siteId: string
@@ -22,20 +23,17 @@ interface SiteData {
   site_google_link: string;
 }
 
-
-
 const ExposedSite = () => {
 
   
   const { toast } = useToast();
 
-  const [selectedFilter, setSelectedFilter] = useState("");
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [data, setData] = useState<SiteData[]>([]);
   const [isOpenDialog, setOpenDialog] = useState(false);
   const [selectedRow, setSelectedRow] = useState<Column | null>(null);
   const [rowCount, setRowCount] = useState(0);
-  const [tableConfig, setTableConfig] = useState<{ rowPerPage: number; pageNumber: number }>({
+  const [tableConfig, setTableConfig] = useState<{ rowPerPage: number; pageNumber: number;}>({
     rowPerPage: 10,
     pageNumber: 1,
   });
@@ -73,7 +71,7 @@ const ExposedSite = () => {
   const [search, setSearch] = useState('');
   const [isAddSiteOpen, setIsAddSiteOpen] = useState(false);
 
-  const [mockInput, setMockInput] = useState('');
+
   const {open, setOpen, alertStatus, setAlertStatus} = useAlertStatus()
 
 
@@ -124,7 +122,6 @@ const ExposedSite = () => {
     }
   ]
 
-  
   const handleCloseModal = () => {
     setOpenDialog(false);
     setIsEdit(false);
@@ -133,6 +130,7 @@ const ExposedSite = () => {
     setSelectedVillage('');
     setSelectedProvince('');
     setSelectedCountry('');
+    setError('');
   };
   
   const handleAddSite = () => {
@@ -140,7 +138,6 @@ const ExposedSite = () => {
     setIsAddSite(true); 
     setIsEdit(false); 
     setOpenDialog(true);
-  
     setSelectedRow(null);
     setFormData({
       client_name: '',
@@ -157,23 +154,20 @@ const ExposedSite = () => {
       city_id: 0,
       district_id: 0
     });
-  
     setSelectedCountry(null);
     setSelectedProvince(null);
     setSelectedCity(null);
     setSelectedDistrict(null);
     setSelectedVillage(null);
-  
     setCountryOptions([]);
     setProvinceOptions([]);
     setCityOptions([]);
     setDistrictOptions([]);
     setVillageOptions([]);
-
     fetchCountryOptions();
+    setError('');
   };
   
-
   const handleView = (row: any) => {
     console.log('handleView dijalankan');
     console.log("View", row);
@@ -202,8 +196,7 @@ const ExposedSite = () => {
     if (countryOption) {
       setSelectedCountry(countryOption);
     }
-  
-   
+    
     fetchProvinceOptions(row.country_id).then(() => {
       setProvinceOptions((prevProvinceOptions) => {
         const provinceOption = prevProvinceOptions.find((option) => option.value === row.province_id);
@@ -317,15 +310,9 @@ const ExposedSite = () => {
     }
   };
 
-  
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Submitting FormData:", formData);
-  
-    // if (!formData || !formData.site_name || !formData.site_code || !formData.site_phone_number || !formData.site_street || !formData.site_google_link || !formData.client_id || !formData.province_id || !formData.city_id || !formData.district_id || !formData.village_id) {
-    //   setError("Form data is incomplete!");
-    //   return;
-    // }
     const errors: any = {};
     if (!formData) {  
         errors.formData = "This field is required";
@@ -489,8 +476,6 @@ const ExposedSite = () => {
     }
   };
 
-  
-
   useEffect(() => {
     if(selectedRow){
       console.log("selectedRow", selectedRow)
@@ -501,6 +486,23 @@ const ExposedSite = () => {
     setRowCount(data.length);
   }, [data]);
 
+
+  const handlePageChange = (newPageNumber: number) => {
+    setTableConfig((prevConfig) => ({
+      ...prevConfig,
+      pageNumber: newPageNumber,
+    }));
+  };
+
+  const handleRowPerPageChange = (newRowPerPage: number) => {
+    setTableConfig((prevConfig) => ({
+      ...prevConfig,
+      rowPerPage: newRowPerPage,
+      pageNumber: 1, // Reset ke halaman pertama
+    }));
+  };
+
+
   const filteredData = data.filter((item) => {
     const searchTerm = search.toLowerCase();
     return (
@@ -510,48 +512,46 @@ const ExposedSite = () => {
       item.site_google_link.toLowerCase().includes(searchTerm)
     );
   });
-const handleFilterChange = (event: any) => {
-  const { name, value } = event;
-  
-  switch (name) {
-    case 'country_id':
-      setSelectedCountry(value);
-      fetchProvinceOptions(value);
-      // setCountryId(value); 
-      const filteredData = data.filter((item) => item.country_id === value);
-      setData(filteredData);
-      break;
-    case 'province_id':
-      setSelectedProvince(value);
-      // setProvinceId(value);
-      fetchCityOptions(value);
-      const filteredDataProvince = data.filter((item) => item.province_id === value);
-      setData(filteredDataProvince);
-      break;
-    case 'city_id':
-      setSelectedCity(value);
-      // setCityId(value);
-      fetchDistrictOptions(value);
-      const filteredDataCity = data.filter((item) => item.city_id === value);
-      setData(filteredDataCity);
-      break;
-    case 'district_id':
-      setSelectedDistrict(value);
-      fetchVillageOptions(value);
-      const filteredDataDistrict = data.filter((item) => item.district_id === value);
-      setData(filteredDataDistrict);
-      break;
-    case 'village_id':
-      setSelectedVillage(value);
-      const filteredDataVillage = data.filter((item) => item.village_id === value);
-      setData(filteredDataVillage);
-      break;
-    default:
-      break;
-    }
-};
-  
-
+  const handleFilterChange = (event: any) => {
+    const { name, value } = event;
+    
+    switch (name) {
+      case 'country_id':
+        setSelectedCountry(value);
+        fetchProvinceOptions(value);
+        // setCountryId(value); 
+        const filteredData = data.filter((item) => item.country_id === value);
+        setData(filteredData);
+        break;
+      case 'province_id':
+        setSelectedProvince(value);
+        // setProvinceId(value);
+        fetchCityOptions(value);
+        const filteredDataProvince = data.filter((item) => item.province_id === value);
+        setData(filteredDataProvince);
+        break;
+      case 'city_id':
+        setSelectedCity(value);
+        // setCityId(value);
+        fetchDistrictOptions(value);
+        const filteredDataCity = data.filter((item) => item.city_id === value);
+        setData(filteredDataCity);
+        break;
+      case 'district_id':
+        setSelectedDistrict(value);
+        fetchVillageOptions(value);
+        const filteredDataDistrict = data.filter((item) => item.district_id === value);
+        setData(filteredDataDistrict);
+        break;
+      case 'village_id':
+        setSelectedVillage(value);
+        const filteredDataVillage = data.filter((item) => item.village_id === value);
+        setData(filteredDataVillage);
+        break;
+      default:
+        break;
+      }
+  };
   const fetchData = async () => {
     try {
       const response = await restAPI<ApiDataResponse<any>>({
@@ -561,13 +561,14 @@ const handleFilterChange = (event: any) => {
         client: '1',
       })
       console.log("responseSites", response)
+      console.log("totalData", response.total)
       setData(response.data)
+      setRowCount(response.total);
       console.log("Data yang di-update:", response.data)
     } catch (error) {
       console.error(error)
     }
   }
-
   const fetchCountryOptions = async () => {
     try {
       const response = await restAPI<ApiDataResponse<any>>({
@@ -585,8 +586,6 @@ const handleFilterChange = (event: any) => {
       console.error(error);
     }
   };
-  
-
   const fetchProvinceOptions = async (countryId: any) => {
     try {
       const response = await restAPI<ApiDataResponse<any>>({
@@ -606,7 +605,6 @@ const handleFilterChange = (event: any) => {
       console.error(error)
     }
   }
-
   const fetchCityOptions = async (provinceId: any) => {
     console.log('fetchCityOptions dijalankan');
     try {
@@ -628,7 +626,6 @@ const handleFilterChange = (event: any) => {
     }
 
   };
-
   const fetchDistrictOptions = async (cityId: any) => {
     console.log('fetchCDistrictOptions dijalankan');
     try {
@@ -648,7 +645,6 @@ const handleFilterChange = (event: any) => {
       console.error(error);
     }
   };
-
   const fetchVillageOptions = async (districtId: any) => {
     try {
       const response = await restAPI<ApiDataResponse<any>>({
@@ -683,103 +679,103 @@ const handleFilterChange = (event: any) => {
       <div className="mb-10 flex">
         <div className="flex w-full items-center justify-end gap-2">
             <div className="flex flex-col justify-end gap-2 w-1/5">
-            <Select
-              placeholder="Country"
-              value={selectedCountry}
-              onValueChange={(value) => handleFilterChange({ name: 'country_id', value })}
-              handleClear={(value) => {
-                fetchData(),
-                setSelectedCountry('')
-                setSelectedDistrict('')
-                setSelectedVillage('')
-                setSelectedProvince('')
-                setSelectedCity('')
-              }}
-              name="country_id"
-            >
-              {countryOptions.map((option) => (
-                <Select.Item key={option.value} value={option.value}>
-                  {option.label}
-                </Select.Item>
-              ))}
-            </Select>
-            <Select
-              placeholder="Province"
-              value={selectedProvince}
-              onValueChange={(value) => handleFilterChange({ name: 'province_id', value })}
-              handleClear={(value) => {
-                fetchData(),
-                setSelectedProvince('')
-                setSelectedCity('')
-                setSelectedDistrict('')
-                setSelectedVillage('')
-              }}
-              name="province_id"
-            >
-              {provinceOptions.map((option) => (
-                <Select.Item key={option.value} value={option.value}>
-                  {option.label}
-                </Select.Item>
-              ))}
-            </Select>
+              <Select
+                placeholder="Country"
+                value={selectedCountry}
+                onValueChange={(value) => handleFilterChange({ name: 'country_id', value })}
+                handleClear={(value) => {
+                  fetchData(),
+                  setSelectedCountry('')
+                  setSelectedDistrict('')
+                  setSelectedVillage('')
+                  setSelectedProvince('')
+                  setSelectedCity('')
+                }}
+                name="country_id"
+              >
+                {countryOptions.map((option) => (
+                  <Select.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </Select.Item>
+                ))}
+              </Select>
+              <Select
+                placeholder="Province"
+                value={selectedProvince}
+                onValueChange={(value) => handleFilterChange({ name: 'province_id', value })}
+                handleClear={(value) => {
+                  fetchData(),
+                  setSelectedProvince('')
+                  setSelectedCity('')
+                  setSelectedDistrict('')
+                  setSelectedVillage('')
+                }}
+                name="province_id"
+              >
+                {provinceOptions.map((option) => (
+                  <Select.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </Select.Item>
+                ))}
+              </Select>
             </div>
             <div className="flex flex-col justify-end gap-2 w-1/5">
-            <Select
-              placeholder="City"
-              value={selectedCity}
-              onValueChange={(value) => handleFilterChange({ name: 'city_id', value })}
+              <Select
+                placeholder="City"
+                value={selectedCity}
+                onValueChange={(value) => handleFilterChange({ name: 'city_id', value })}
+                handleClear={(value) => {
+                  fetchData(),
+                  setCityId(0),
+                  setSelectedProvince('')
+                  setSelectedCountry('')
+                  setSelectedCity('')
+                  setSelectedDistrict('')
+                  setSelectedVillage('')
+                }}
+                name="city_id"
+              >
+                {cityOptions.map((option) => (
+                  <Select.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </Select.Item>
+                ))}
+              </Select>
+              <Select
+              placeholder="District"
+              value={selectedDistrict}
+              onValueChange={(value) => handleFilterChange({ name: 'district_id', value })}
               handleClear={(value) => {
                 fetchData(),
-                setCityId(0),
-                setSelectedProvince('')
-                setSelectedCountry('')
-                setSelectedCity('')
                 setSelectedDistrict('')
                 setSelectedVillage('')
               }}
-              name="city_id"
+              name="district_id"
             >
-              {cityOptions.map((option) => (
+              {districtOptions.map((option) => (
                 <Select.Item key={option.value} value={option.value}>
                   {option.label}
                 </Select.Item>
               ))}
-            </Select>
-            <Select
-            placeholder="District"
-            value={selectedDistrict}
-            onValueChange={(value) => handleFilterChange({ name: 'district_id', value })}
-            handleClear={(value) => {
-              fetchData(),
-              setSelectedDistrict('')
-              setSelectedVillage('')
-            }}
-            name="district_id"
-          >
-            {districtOptions.map((option) => (
-              <Select.Item key={option.value} value={option.value}>
-                {option.label}
-              </Select.Item>
-            ))}
-          </Select>
+              </Select>
             </div>
             <div className="flex flex-col justify-end gap-2 w-1/5">
-            <Select
-              placeholder="Village"
-              value={selectedVillage}
-              onValueChange={(value) => handleFilterChange({ name: 'village_id', value })}
-              handleClear={(value) => {
-                fetchData(),
-                setSelectedVillage('')
-              }}
-              name="village_id"
-            >
-              {villageOptions.map((option) => (
-                <Select.Item key={option.value} value={option.value}>
-                  {option.label}
-                </Select.Item>
-              ))}
-            </Select>
+              <Select
+                placeholder="Village"
+                value={selectedVillage}
+                onValueChange={(value) => handleFilterChange({ name: 'village_id', value })}
+                handleClear={(value) => {
+                  fetchData(),
+                  setSelectedVillage('')
+                }}
+                name="village_id"
+              >
+                {villageOptions.map((option) => (
+                  <Select.Item key={option.value} value={option.value}>
+                    {option.label}
+                  </Select.Item>
+                ))}
+              </Select>
             <ClearableInput
               label='Search'
               value={search}
@@ -796,300 +792,58 @@ const handleFilterChange = (event: any) => {
      className="max-w-screen-xl" 
      columns={columns} 
      data={filteredData} 
-     showFooter={true} 
+     showFooter
      rowCount={rowCount} 
      tableConfig={setTableConfig}
+     onPageChange={handlePageChange}
+     onRowPerPageChange={handleRowPerPageChange}
      /> 
+
+      {/* <Pagination
+        pageNumber={tableConfig.pageNumber}
+        rowPerPage={tableConfig.rowPerPage}
+        rowCount={rowCount}
+        onPageChange={handlePageChange}
+        onRowPerPageChange={handleRowPerPageChange}
+      /> */}
+
         <Dialog open={isOpenDialog} setOpen={setOpenDialog} title={isAddSite ? "Add Site" : (isEdit ? (selectedRow ? "Edit Site" : "View Site") : "View Site")} description='Form Input'>
             <Dialog.Fill>
-              <div className="flex flex-col">
-                <div className="flex gap-2 my-2">
-                  {/* {isEdit ? null : isAddSite ? null : ( */}
-                    {/* <Input label="Client Name" name="client_name" value={formData.client_name}
-                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value})}
-                      disabled={isViewMode}
-                    /> */}
-                  {/* )} */}
-                      <Input label="Site Name" value={formData.site_name || ''}
-                      onChange={(e) => setFormData({ ...formData, site_name: e.target.value})}
-                      disabled={isViewMode}
-                      error={error.site_name}
-                      />
-                      <Input label="Site Code" name="site_code" value={formData.site_code || ''}
-                    onChange={(e) => setFormData({ ...formData, site_code: e.target.value})}
-                    disabled={isViewMode}
-                    type="text"
-                    onKeyPress={(e) => {
-                      if (!/[0-9]/.test(e.key)) {
-                        e.preventDefault();
-                        setError('*Only numbers are allowed For Site Code*');
-                      }else{
-                        setError('');
-                      }
-                    }}
-                    
-                    />
-                </div>
-                <div className="flex gap-2 my-2">
-                      {
-                        countryOptions.length > 0 && (
-                          <Select
-                          placeholder='Country'
-                          value={selectedCountry ? selectedCountry.value : ''}
-                          onValueChange={(e) => {
-                            if (e) {
-                              const selectedOption = countryOptions.find((option) => option.value === e);
-                              if (selectedOption) {
-                                setSelectedCountry(selectedOption);
-                                setFormData({ ...formData, country_id: selectedOption.value });
-                                fetchProvinceOptions(selectedOption.value);
-                              }
-                            }
-                          }}
-                          handleClear={(e) => {
-                            if(isAddSite ){
-                              setSelectedCountry(null);
-                              setFormData({ ...formData, country_id: null });
-                              setProvinceOptions([]);
-                              setCityOptions([]);
-                              setDistrictOptions([]);
-                              setVillageOptions([]);
-                              setSelectedProvince(null);
-                              setSelectedCity(null);
-                              setSelectedDistrict(null);
-                              setSelectedVillage(null);
-                            }else if(isEdit){
-                              setSelectedCountry(null);
-                              setFormData({ ...formData, country_id: null });
-                              setProvinceOptions([]);
-                              setCityOptions([]);
-                              setDistrictOptions([]);
-                              setVillageOptions([]);
-                              setSelectedProvince(null);
-                              setSelectedCity(null);
-                              setSelectedDistrict(null);
-                              setSelectedVillage(null);
-                            }
-                          }}
-                          disabled={isViewMode}
-                        >
-                          {countryOptions.map((country) => (
-                            <Select.Item key={country.value} value={country.value}>
-                              {country.label}
-                            </Select.Item>
-                          ))}
-                        </Select>
-                        )
-                      }
-
-                      {
-                        isAddSiteOpen && (
-                          <Select
-                          placeholder='Province'
-                          value={selectedProvince ? selectedProvince.value : ''}
-                          onValueChange={(e) => {
-                            if (e) {
-                              const selectedOptionProvince = provinceOptions.find((option) => option.value === e);
-                              if (selectedOptionProvince) {
-                                setSelectedProvince(selectedOptionProvince);
-                                setFormData({ ...formData, province_id: selectedOptionProvince.value });
-
-                                fetchCityOptions(selectedOptionProvince.value);
-                              }
-                            }
-                          }}
-                          handleClear={(e) => {
-                            if(isEdit){
-                              setSelectedProvince(null);
-                              setFormData({ ...formData, province_id: null });
-                              setCityOptions([]);
-                              setSelectedCity(null);
-                              setDistrictOptions([]);
-                              setSelectedDistrict(null);
-                              setVillageOptions([]);
-                              setSelectedVillage(null);
-                            }else if(isAddSite){
-                              setSelectedProvince(null);
-                              setFormData({ ...formData, province_id: null });
-                              setCityOptions([]);
-                              setSelectedCity(null);
-                              setDistrictOptions([]);
-                              setSelectedDistrict(null);
-                              setVillageOptions([]);
-                              setSelectedVillage(null);
-                            }
-                          }}
-                          disabled={!selectedCountry || isViewMode}
-                        >
-                          {provinceOptions.map((province) => (
-                            <Select.Item key={province.value} value={province.value}>
-                              {province.label}
-                            </Select.Item>
-                          ))}
-                        </Select>
-                        )
-                      }   
-                </div> 
-                <div className="flex gap-2 my-2"> 
-                  {
-                    isAddSiteOpen && (
-                      <Select
-                        placeholder='City'
-                        value={selectedCity ? selectedCity.value : ''}
-                        onValueChange={(e) => {
-                          if (e) {
-                            const selectedOptionCity = cityOptions.find((option) => option.value === e);
-                            if (selectedOptionCity) {
-                              setSelectedCity(selectedOptionCity);
-                              setFormData({ ...formData, city_id: selectedOptionCity.value });
-                              fetchDistrictOptions(selectedOptionCity.value);
-                            }
-                          }
-                        }}
-                        handleClear={(e) => {
-                          if(isEdit){
-                            setSelectedCity(null);
-                            setFormData({ ...formData, city_id: null });
-                            setDistrictOptions([]);
-                            setSelectedDistrict(null);
-                            setVillageOptions([]);
-                            setSelectedVillage(null);
-                          }else if(isAddSite){
-                            setSelectedCity(null);
-                            setFormData({ ...formData, city_id: null });
-                            setDistrictOptions([]);
-                            setSelectedDistrict(null);
-                            setVillageOptions([]);
-                            setSelectedVillage(null);
-                          }
-                        }}
-                        disabled={!selectedProvince || isViewMode}
-                      >
-                        {cityOptions.map((city) => (
-                          <Select.Item key={city.value} value={city.value}>
-                            {city.label}
-                          </Select.Item>
-                        ))}
-                      </Select>
-                    )
-                  }
-
-                  {
-                    isAddSiteOpen && (
-                      <Select
-                        placeholder='District'
-                        value={selectedDistrict ? selectedDistrict.value : ''}
-                        onValueChange={(e) => {
-                          if (e) {
-                            const selectedOptionDistrict = districtOptions.find((option) => option.value === e);
-                            if(selectedOptionDistrict) {
-                              setSelectedDistrict(selectedOptionDistrict);
-                              setFormData({ ...formData, district_id: selectedOptionDistrict.value });
-                              fetchVillageOptions(selectedOptionDistrict.value);
-                            }
-                          }
-                        }}
-                        handleClear={(e) => {
-                          if(isEdit){
-                            setSelectedDistrict(null);
-                            setFormData({ ...formData, district_id: null });
-                            setVillageOptions([]);
-                            setSelectedVillage(null);
-                          }else if(isAddSite){
-                            setFormData({ ...formData, district_id: null });
-                            setVillageOptions([]);
-                            setSelectedVillage(null);
-                            setSelectedDistrict(null);
-                          }
-                        }}
-                        disabled={!selectedCity || isViewMode}
-                      >
-                        {districtOptions.map((district) => (
-                          <Select.Item key={district.value} value={district.value}>
-                            {district.label}
-                          </Select.Item>
-                        ))}
-                      </Select>
-                    )
-                  }
-                </div>
-                <div className="flex gap-2 my-2">
-                    {
-                      isAddSiteOpen && (
-                        <Select
-                          placeholder='Village'
-                          value={selectedVillage ? selectedVillage.value : ''}
-                          onValueChange={(e) => {
-                            if (e) {
-                              const selectedOptionVillage = villageOptions.find((option) => option.value === e);
-                              if (selectedOptionVillage) {
-                                setSelectedVillage(selectedOptionVillage);
-                                setFormData({ ...formData, village_id: selectedOptionVillage.value });
-                              }
-                            }
-                          }}
-                          handleClear={(e) => {
-                            if(isEdit){
-                              setSelectedVillage(null);
-                              setVillageOptions([]);
-                              setFormData({ ...formData, village_id: null });
-                            }else if(isAddSite){
-                              setSelectedVillage(null);
-                              setVillageOptions([]);
-                              setFormData({ ...formData, village_id: null });
-                            }
-                            
-                          }}
-                          disabled={!selectedDistrict || isViewMode}
-                        >
-                          {villageOptions.map((village) => (
-                            <Select.Item key={village.value} value={village.value}>
-                              {village.label}
-                            </Select.Item>
-                          ))}
-                        </Select> 
-                        )
-                    }
-
-                      <Input label="Site Phone Number" name="site_phone_number" value={formData.site_phone_number || ''}
-                        maxLength={15}
-                        minLength={9}
-                        pattern="^[0-9]*$"
-                        onKeyPress={(e) => {
-                          if (!/[0-9]/.test(e.key)) {
-                            e.preventDefault();
-                            setError('*Only numbers are allowed For Phone Number');
-                          }else{
-                            setError('');
-                          }
-                        }}
-                        onChange={(e) => {
-                          const phoneNumber = e.target.value;
-                          setFormData({ ...formData, site_phone_number: phoneNumber});
-                        }}
-                        disabled={isViewMode}
-                        />    
-                        
-                </div>
-                <div className="flex gap-2 my-2">
-                  <Input label="Site Street" name="site_street" value={formData.site_street || ''}
-                  onChange={(e) => setFormData({ ...formData, site_street: e.target.value})}
-                  disabled={isViewMode}
-                  />
-                  <Input label="Site Google Link" name="site_google_link" value={formData.site_google_link || ''}
-                  onChange={(e) => setFormData({ ...formData, site_google_link: e.target.value})}
-                  disabled={isViewMode}
-                  />
-                </div>
-                
-                <div className="flex gap-2 justify-center my-5">
-                <Button onClick={handleCloseModal}>Close</Button>
-                {isEdit || isAddSite ? (
-                  <Button onClick={handleSubmit}>{isEdit && selectedRow ? "Update" : "Add"}</Button>
-                ) : null}
-                </div>
-              </div> 
-              {error && <div className="text-xs flex flex-row items-center gap-2 text-red-500">{error}</div>}
+               <FormComponent
+                  formData={formData}
+                  setFormData={setFormData}
+                  isViewMode={isViewMode}
+                  error={error}
+                  setError={setError}
+                  countryOptions={countryOptions}
+                  selectedCountry={selectedCountry}
+                  setSelectedCountry={setSelectedCountry}
+                  provinceOptions={provinceOptions}
+                  setProvinceOptions={setProvinceOptions}
+                  setCityOptions={setCityOptions}
+                  setDistrictOptions={setDistrictOptions}
+                  setVillageOptions={setVillageOptions}
+                  selectedProvince={selectedProvince}
+                  setSelectedProvince={setSelectedProvince}
+                  cityOptions={cityOptions}
+                  selectedCity={selectedCity}
+                  setSelectedCity={setSelectedCity}
+                  districtOptions={districtOptions}
+                  selectedDistrict={selectedDistrict}
+                  setSelectedDistrict={setSelectedDistrict}
+                  villageOptions={villageOptions}
+                  selectedVillage={selectedVillage}
+                  setSelectedVillage={setSelectedVillage}
+                  fetchProvinceOptions={fetchProvinceOptions}
+                  fetchCityOptions={fetchCityOptions}
+                  fetchDistrictOptions={fetchDistrictOptions}
+                  fetchVillageOptions={fetchVillageOptions}
+                  handleCloseModal={handleCloseModal}
+                  handleSubmit={handleSubmit}
+                  isEdit={isEdit}
+                  isAddSite={isAddSite}
+                  selectedRow={selectedRow}
+                />
             </Dialog.Fill>
         </Dialog>
         <DialogConfirm
@@ -1117,12 +871,11 @@ const handleFilterChange = (event: any) => {
         </DialogConfirm>
 
         <BaseAlert 
-            open={open} // from useAlertStatus
-            setOpen={setOpen} // from useAlertStatus
-            title={alertStatus.title} // from useAlertStatus.title
-            content={alertStatus.content} // from useAlertStatus.content
+            open={open}
+            setOpen={setOpen} 
+            title={alertStatus.title}
+            content={alertStatus.content}
         />
-
     </div>
   )
 }
